@@ -1,3 +1,5 @@
 Ship model - ES3DStudios
 Asteroid model - Mykhailo Ohorodnichuk
 Missile model - abramsdesign
+Water material - tharlevfx
+Game Over image - https://ak5.picdn.net/shutterstock/videos/1015733875/thumb/10.jpg
