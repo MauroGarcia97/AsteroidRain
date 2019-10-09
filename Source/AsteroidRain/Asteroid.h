@@ -10,6 +10,9 @@ UCLASS()
 class ASTEROIDRAIN_API AAsteroid : public AActor
 {
 	GENERATED_BODY()
+
+		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh, meta = (AllowPrivateAccess = "true"))
+		class UStaticMeshComponent* Mesh;
 	
 public:	
 	// Sets default values for this actor's properties
