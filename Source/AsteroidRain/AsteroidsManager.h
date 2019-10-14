@@ -11,36 +11,41 @@ class ASTEROIDRAIN_API AAsteroidsManager : public AActor
 {
 	GENERATED_BODY()
 
-		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh, meta = (AllowPrivateAccess = "true"))
-		class USceneComponent* SpawnLocation;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Root, meta = (AllowPrivateAccess = "true"))
 		class USceneComponent* RootLocation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Spawn, meta = (AllowPrivateAccess = "true"))
+		class USceneComponent* SpawnLocation;
 	
 public:	
-	// Sets default values for this actor's properties
+
 	AAsteroidsManager();
 
+	//Size of component X to spawn asteroids
 	UPROPERTY(EditInstanceOnly)
 		float X;
 		
+	//Size of component Y to spawn asteroids
 	UPROPERTY(EditInstanceOnly)
 		float Y;
 
+	//Frecuency with asteroid spawn per second
 	UPROPERTY(EditInstanceOnly)
-	int AsteroidsPerSecond;
+	float AsteroidsPerSecond;
+
+	virtual void Tick(float DeltaTime) override;
+
+	void DestroyedByMissile(FVector Location, int Size);
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 private:
+
 	TSubclassOf<class AAsteroid> AsteroidClass;
-	FActorSpawnParameters ActorSpawnParams;
 
 	float Time;
+	float AsteroidsPerSecondAccumulate;
 	
 };

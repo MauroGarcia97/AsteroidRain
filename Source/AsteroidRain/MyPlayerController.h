@@ -1,4 +1,4 @@
-// Mauro García Monclú
+//  Mauro García Monclú
 
 #pragma once
 
@@ -15,6 +15,12 @@ class ASTEROIDRAIN_API AMyPlayerController : public APlayerController
 	GENERATED_BODY()
 	
 	
-	
+public:
+	AMyPlayerController();
+	// Called to bind functionality to input
+	virtual void SetupInputComponent() override;
+	void MoveForward(float Value);
+	void MoveRight(float value);
+	void Shoot();
 	
 };
