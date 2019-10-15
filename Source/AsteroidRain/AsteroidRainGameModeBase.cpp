@@ -8,4 +8,5 @@ AAsteroidRainGameModeBase::AAsteroidRainGameModeBase()
 {
 	PlayerControllerClass = AMyPlayerController::StaticClass();
 	DefaultPawnClass = ASpaceship::StaticClass();
+
 }

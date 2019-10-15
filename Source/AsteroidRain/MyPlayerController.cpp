@@ -2,16 +2,38 @@
 
 #include "MyPlayerController.h"
 #include "Spaceship.h"
-
-//#include "Engine.h"
-/*if (GEngine)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, FString::Printf(TEXT("Hola")));
-}*/
+#include "MyGameInstance.h"
 
 AMyPlayerController::AMyPlayerController()
 {
+	/*If there is Tick()*/
+	PrimaryActorTick.bCanEverTick = true;
+
+	Life = 1.0f;
+
+	Score = 0;
+
+	DeltaTimeAccumulate = 0.0f;
+
 }
+
+// Called every frame
+void AMyPlayerController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	DeltaTimeAccumulate += DeltaTime;
+
+	if (DeltaTimeAccumulate >= 1.0f)
+	{
+		Score++;
+
+		DeltaTimeAccumulate = 0.0f;
+
+	}
+
+}
+
 void AMyPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
@@ -20,11 +42,12 @@ void AMyPlayerController::SetupInputComponent()
 	InputComponent->BindAxis("MoveRight", this, &AMyPlayerController::MoveRight);
 
 	InputComponent->BindAction("Shoot", IE_Pressed, this, &AMyPlayerController::Shoot);
+
 }
 
 void AMyPlayerController::MoveForward(float value)
 {
-	auto pawn = Cast<ASpaceship>(this->GetPawn());
+	ASpaceship* pawn = Cast<ASpaceship>(this->GetPawn());
 
 	if (pawn)
 	{
@@ -36,7 +59,7 @@ void AMyPlayerController::MoveForward(float value)
 
 void AMyPlayerController::MoveRight(float value)
 {
-	auto pawn = Cast<ASpaceship>(this->GetPawn());
+	ASpaceship* pawn = Cast<ASpaceship>(this->GetPawn());
 
 	if (pawn)
 	{
@@ -48,12 +71,36 @@ void AMyPlayerController::MoveRight(float value)
 
 void AMyPlayerController::Shoot()
 {
-
-	auto pawn = Cast<ASpaceship>(this->GetPawn());
+	ASpaceship* pawn = Cast<ASpaceship>(this->GetPawn());
 
 	if (pawn)
 	{
 		pawn->Shoot();
 
 	}
+
+}
+
+float AMyPlayerController::GetLife()
+{
+	return Life;
+
+}
+
+int AMyPlayerController::GetScore()
+{
+	return Score;
+
+}
+
+void AMyPlayerController::UpdateLife(float uLife)
+{
+	Life += uLife;
+
+}
+
+void AMyPlayerController::UpdateScore(int uScore)
+{
+	Score += uScore;
+
 }

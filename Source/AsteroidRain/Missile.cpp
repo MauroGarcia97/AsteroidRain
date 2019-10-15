@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Mauro García Monclú
 
 #include "Missile.h"
 #include "Components/SphereComponent.h"
@@ -7,20 +7,21 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Asteroid.h"
 #include "AsteroidsManager.h"
+#include "MyPlayerController.h"
+#include "Kismet/GameplayStatics.h"
 
-#include "Engine.h"
 // Sets default values
 AMissile::AMissile()
 {
-	/*If there is Tick()
-	PrimaryActorTick.bCanEverTick = true;*/
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	CollisionComp->InitSphereRadius(60.0f);
 	RootComponent = CollisionComp;
+
 	CollisionComp->SetNotifyRigidBodyCollision(true);
-	CollisionComp->BodyInstance.SetCollisionProfileName("OverlapAll");
-	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AMissile::OnOverlapBegin);
-	CollisionComp->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel1);
+	CollisionComp->BodyInstance.SetCollisionProfileName("Projectile");
+	CollisionComp->SetCollisionObjectType(ECollisionChannel::ECC_Pawn);
+
+	CollisionComp->OnComponentHit.AddDynamic(this, &AMissile::OnHit);
 
 	CollisionComp->SetWalkableSlopeOverride(FWalkableSlopeOverride(WalkableSlope_Unwalkable, 0.f));
 	CollisionComp->CanCharacterStepUpOn = ECB_No;
@@ -29,14 +30,17 @@ AMissile::AMissile()
 	Mesh->SetupAttachment(RootComponent);
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> mesh(TEXT("StaticMesh'/Game/Assets/Meshes/Missile/Missile.Missile'"));
 	Mesh->SetStaticMesh(mesh.Object);
+
 	Mesh->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
 	Mesh->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
 	Mesh->RelativeScale3D = FVector(10.0f, 10.0f, 10.0f);
 
 	Movement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Movement"));
 	Movement->UpdatedComponent = RootComponent;
+
 	Movement->InitialSpeed = 3000.f;
 	Movement->MaxSpeed = 3000.f;
+
 	Movement->bRotationFollowsVelocity = true;
 	Movement->bShouldBounce = false;
 	Movement->ProjectileGravityScale = 0.0f;
@@ -45,47 +49,37 @@ AMissile::AMissile()
 	Movement->bSnapToPlaneAtStart = true;
 	Movement->SetPlaneConstraintAxisSetting(EPlaneConstraintAxisSetting::Z);
 
-	OneTime = true;
-}
-
-// Called when the game starts or when spawned
-void AMissile::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void AMissile::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
+	InitialLifeSpan = 10.0f;
 
 }
-void AMissile::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+
+void AMissile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if ((OtherActor != NULL) && (OtherActor != this) && OneTime)
+	if ((OtherActor != NULL) && (OtherActor != this))
 	{
-		OneTime = false;
 		if (OtherActor->GetClass()->IsChildOf(AAsteroid::StaticClass()))
 		{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, FString::Printf(TEXT("Hola")));
-		}
-			auto asteroid = Cast<AAsteroid>(OtherActor);
-			int asteroidSize = asteroid->Size;
+			AAsteroid* asteroid = Cast<AAsteroid>(OtherActor);
+
+			AAsteroidsManager* asteroidOwner = asteroid->GetOwnerAsteroid();
+			int asteroidSize = asteroid->GetSize();
+			FVector asteroidLocation = asteroid->GetActorLocation();
+
+			AMyPlayerController* mpc = Cast<AMyPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+			mpc->UpdateScore(10);
+
 			asteroid->Destroy();
+
 			if (asteroidSize > 1)
 			{
-				auto asteroidOwner = asteroid->Owner;
-				FVector asteroidLocation = asteroid->GetActorLocation();
-				/*while (asteroid)
-				{
-
-				}*/
 				asteroidOwner->DestroyedByMissile(asteroidLocation, asteroidSize);
+
 			}
+
 			Destroy();
+
 		}
+
 	}
+
 }

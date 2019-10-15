@@ -17,7 +17,7 @@ class ASTEROIDRAIN_API AAsteroidsManager : public AActor
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Spawn, meta = (AllowPrivateAccess = "true"))
 		class USceneComponent* SpawnLocation;
 	
-public:	
+public:
 
 	AAsteroidsManager();
 
@@ -31,21 +31,20 @@ public:
 
 	//Frecuency with asteroid spawn per second
 	UPROPERTY(EditInstanceOnly)
-	float AsteroidsPerSecond;
+		float AsteroidsPerSecond;
 
 	virtual void Tick(float DeltaTime) override;
 
 	void DestroyedByMissile(FVector Location, int Size);
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 private:
 
-	TSubclassOf<class AAsteroid> AsteroidClass;
-
 	float Time;
+
 	float AsteroidsPerSecondAccumulate;
+
+	float IncrementSpeed;
+
+	TSubclassOf<class AAsteroid> AsteroidClass;
 	
 };

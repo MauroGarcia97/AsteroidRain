@@ -1,29 +1,31 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Mauro García Monclú
 
 #include "Spaceship.h"
 #include "Components/SphereComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SceneComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
+#include "Kismet/GameplayStatics.h"
 #include "Missile.h"
-
-#include "Engine.h"
+#include "Asteroid.h"
+#include "MyPlayerController.h"
 
 //Sets default values
 ASpaceship::ASpaceship()
 {
-	/*If there is Tick()*/
-	//PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = true;
 
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	CollisionComp->InitSphereRadius(100.0f);
 	RootComponent = CollisionComp;
 
+	CollisionComp->SetNotifyRigidBodyCollision(true);
 	CollisionComp->SetCollisionObjectType(ECollisionChannel::ECC_Pawn);
 	CollisionComp->SetCollisionProfileName("BlockAll");
+
+	CollisionComp->OnComponentHit.AddDynamic(this, &ASpaceship::OnHit);
 
 	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh"));
 	SkeletalMesh->SetupAttachment(RootComponent);
@@ -56,13 +58,34 @@ ASpaceship::ASpaceship()
 	Movement->bSnapToPlaneAtStart = true;
 	Movement->SetPlaneConstraintAxisSetting(EPlaneConstraintAxisSetting::Z);
 
-	MissileClass = TSubclassOf<AMissile>(AMissile::StaticClass());
-
-	ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-
 	Time = 0.0f;
 
 	Cooldown = false;
+	
+	MissileClass = TSubclassOf<AMissile>(AMissile::StaticClass());
+
+	ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
+
+	MyPlayerController = Cast<AMyPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+
+}
+
+//Called every frame
+void ASpaceship::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	Time += DeltaTime;
+
+	//Action every half second
+	if (Time >= 0.5f)
+	{
+		//Disable cooldown
+		Cooldown = false;
+
+		Time = 0.0f;
+
+	}
 
 }
 
@@ -87,29 +110,27 @@ void ASpaceship::Shoot()
 		if (currentMissile != NULL)
 		{
 			Cooldown = true;
+
 		}
+
 	}
+
 }
 
-// Called when the game starts or when spawned
-void ASpaceship::BeginPlay()
+void ASpaceship::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void ASpaceship::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	Time += DeltaTime;
-
-	//Action every second
-	if (Time >= 0.5f)
+	if ((OtherActor != NULL) && (OtherActor != this))
 	{
-		Cooldown = false;
-		Time = 0.0f;
+		if (OtherActor->GetClass()->IsChildOf(AAsteroid::StaticClass()))
+		{
+			AAsteroid* asteroid = Cast<AAsteroid>(OtherActor);
+
+			MyPlayerController->UpdateLife(-((float)(asteroid->GetSize()))/4.0f);
+
+			OtherActor->Destroy();
+
+		}
 
 	}
+
 }

@@ -11,10 +11,10 @@ class ASTEROIDRAIN_API AAsteroid : public AActor
 {
 	GENERATED_BODY()
 
-		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Collision, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Collision, meta = (AllowPrivateAccess = "true"))
 		class USphereComponent* CollisionComp;
 
-		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh, meta = (AllowPrivateAccess = "true"))
 		class UStaticMeshComponent* Mesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
@@ -26,16 +26,20 @@ public:
 
 	void GeneratedVelocity(FVector VelocityDirection);
 
-	class AAsteroidsManager* Owner;
-	int Size;
+	void IncrementSpeed(float IncrementSpeed);
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	class AAsteroidsManager* GetOwnerAsteroid();
 
-public:	
-	// Called every frame
-	//virtual void Tick(float DeltaTime) override;
+	int GetSize();
+
+	void SetOwnerAsteroid(class AAsteroidsManager* Owner);
+
+	void SetSize(int Size);
 
 private:
+
+	class AAsteroidsManager* Owner;
+
+	int Size;
+
 };

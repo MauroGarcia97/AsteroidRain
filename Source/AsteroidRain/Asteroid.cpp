@@ -8,11 +8,10 @@
 
 AAsteroid::AAsteroid()
 {
-	/*If there is Tick()
-	PrimaryActorTick.bCanEverTick = true;*/
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	CollisionComp->InitSphereRadius(100.0f);
 	RootComponent = CollisionComp;
+
 	CollisionComp->SetNotifyRigidBodyCollision(true);
 	CollisionComp->BodyInstance.SetCollisionProfileName("Projectile");
 	CollisionComp->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel1);
@@ -25,6 +24,7 @@ AAsteroid::AAsteroid()
 	Mesh->SetupAttachment(RootComponent);
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> mesh(TEXT("StaticMesh'/Game/Assets/Meshes/Asteroid/Asteroid.Asteroid'"));
 	Mesh->SetStaticMesh(mesh.Object);
+
 	Mesh->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
 	Mesh->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
 	Mesh->RelativeScale3D = FVector(1.0f, 1.0f, 1.0f);
@@ -33,6 +33,7 @@ AAsteroid::AAsteroid()
 	Movement->UpdatedComponent = RootComponent;
 	Movement->InitialSpeed = 2000.f;
 	Movement->MaxSpeed = 2000.f;
+
 	Movement->bRotationFollowsVelocity = true;
 	Movement->bShouldBounce = true;
 	Movement->ProjectileGravityScale = 0.0f;
@@ -40,25 +41,49 @@ AAsteroid::AAsteroid()
 	Movement->bConstrainToPlane = true;
 	Movement->bSnapToPlaneAtStart = true;
 	Movement->SetPlaneConstraintAxisSetting(EPlaneConstraintAxisSetting::Z);
+
+	InitialLifeSpan = 120.0f;
+
+	Size = 1;
+	Owner = NULL;
+
 }
 
 void AAsteroid::GeneratedVelocity(FVector nVelocityDirection)
 {
-	float sizeVelocity = FMath::RandRange(1000.0f, 2000.0f);
+	float sizeVelocity = FMath::RandRange(Movement->MaxSpeed/2.0f, Movement->MaxSpeed);
 
 	nVelocityDirection.Normalize();
 	Movement->Velocity = FRotator(0.0f, 90.0f, 0.0f).RotateVector(nVelocityDirection*sizeVelocity);
 
 }
 
-void AAsteroid::BeginPlay()
+void AAsteroid::IncrementSpeed(float incrementSpeed)
 {
-	Super::BeginPlay();
+	Movement->MaxSpeed += incrementSpeed;
 
 }
 
-/*void AAsteroid::Tick(float DeltaTime)
+AAsteroidsManager* AAsteroid::GetOwnerAsteroid()
 {
-	Super::Tick(DeltaTime);
+	return Owner;
 
-}*/
+}
+
+int AAsteroid::GetSize()
+{
+	return Size;
+
+}
+
+void AAsteroid::SetOwnerAsteroid(class AAsteroidsManager* nOwner)
+{
+	Owner = nOwner;
+
+}
+
+void AAsteroid::SetSize(int nSize)
+{
+	Size = nSize;
+
+}

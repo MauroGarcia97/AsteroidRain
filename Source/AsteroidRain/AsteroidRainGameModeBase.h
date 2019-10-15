@@ -11,8 +11,8 @@ class ASTEROIDRAIN_API AAsteroidRainGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
-	
 public:
+
 	AAsteroidRainGameModeBase();
 	
 };

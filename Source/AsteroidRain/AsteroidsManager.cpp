@@ -5,8 +5,6 @@
 #include "Asteroid.h"
 #include "Engine/World.h"
 
-#include "Engine.h"
-
 //Sets default values
 AAsteroidsManager::AAsteroidsManager()
 {
@@ -16,18 +14,22 @@ AAsteroidsManager::AAsteroidsManager()
 	//SceneComponent so that SpawnLocation isn't the root
 	RootLocation = CreateDefaultSubobject<USceneComponent>(TEXT("RootLocation"));
 	RootComponent = RootLocation;
+
 	RootLocation->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
 
 	//SceneComponent to spawn asteroid
 	SpawnLocation = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnLocation"));
 	SpawnLocation->SetupAttachment(RootComponent);
+
 	SpawnLocation->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
 
 	//Initial the time for Tick() and auxiliar variables
 	Time = 0.0f;
 	AsteroidsPerSecondAccumulate = 0.0f;
+	IncrementSpeed = 0.0f;
 
 	AsteroidClass = TSubclassOf<AAsteroid>(AAsteroid::StaticClass());
+
 }
 
 //Called every frame
@@ -40,6 +42,9 @@ void AAsteroidsManager::Tick(float DeltaTime)
 	//Action every second
 	if (Time >= 1.0f)
 	{
+		AsteroidsPerSecond += 0.2;
+		IncrementSpeed += 20.0f;
+
 		//When you want spawn decimal part of asteroid, that is accumulated until is one unit or more
 		if (AsteroidsPerSecondAccumulate < 1.0f)
 		{
@@ -94,15 +99,13 @@ void AAsteroidsManager::Tick(float DeltaTime)
 						velocity = FVector(FMath::RandRange(-1.0f, 1.0f), (GetActorRotation().Vector()).Y, 0.0f);
 
 					}
-					else
-					{
 
-					}
+					currentAsteroid->IncrementSpeed(IncrementSpeed);
 
 					//Change velocity, size and owner
 					currentAsteroid->GeneratedVelocity(velocity);
-					currentAsteroid->Size = size;
-					currentAsteroid->Owner = this;
+					currentAsteroid->SetSize(size);
+					currentAsteroid->SetOwnerAsteroid(this);
 
 				}
 
@@ -120,17 +123,10 @@ void AAsteroidsManager::Tick(float DeltaTime)
 
 }
 
-// Called when the game starts or when spawned
-void AAsteroidsManager::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-
 void AAsteroidsManager::DestroyedByMissile(FVector locationDestroyed, int size)
 {
 	float dimension = 40.0f * (float)size * 2.5f;
+
 	bool isComplete = false;
 
 	while (!isComplete)
@@ -139,7 +135,7 @@ void AAsteroidsManager::DestroyedByMissile(FVector locationDestroyed, int size)
 		
 		int childSize = FMath::RandRange(1, size-1);
 
-		FTransform SpawnTransform(FRotator((SpawnLocation->GetComponentToWorld()).GetRotation()), locationDestroyed + vectorVariant, FVector(2.5f*childSize, 2.5f*childSize, 2.5f*childSize));
+		FTransform SpawnTransform(FRotator((SpawnLocation->GetComponentToWorld()).GetRotation()), FVector(locationDestroyed.X + vectorVariant.X, locationDestroyed.Y + vectorVariant.Y, 0.0f), FVector(2.5f*childSize, 2.5f*childSize, 2.5f*childSize));
 		
 		//Instance asteroid before spawn
 		AAsteroid* currentAsteroid = GetWorld()->SpawnActorDeferred<AAsteroid>(AsteroidClass, SpawnTransform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
@@ -149,9 +145,17 @@ void AAsteroidsManager::DestroyedByMissile(FVector locationDestroyed, int size)
 			//Spawn asteroid
 			currentAsteroid->FinishSpawning(SpawnTransform, true);
 
+			currentAsteroid->IncrementSpeed(IncrementSpeed);
+
 			currentAsteroid->GeneratedVelocity(FVector(FMath::RandRange(-1.0f, 1.0f), FMath::RandRange(-1.0f, 1.0f), 0.0f));
-			currentAsteroid->Size = childSize;
-			currentAsteroid->Owner = this;
+			currentAsteroid->SetSize(childSize);
+			currentAsteroid->SetOwnerAsteroid(this);
+
+			if (currentAsteroid->GetActorLocation().Z != 0.0f)
+			{
+				currentAsteroid->SetActorLocation(FVector(currentAsteroid->GetActorLocation().X, currentAsteroid->GetActorLocation().Y, 0.0f), false, false, ETeleportType::TeleportPhysics);
+
+			}
 
 			size -= childSize;
 

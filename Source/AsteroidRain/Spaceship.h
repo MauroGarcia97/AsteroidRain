@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Mauro García Monclú
 
 #pragma once
 
@@ -18,7 +18,7 @@ class ASTEROIDRAIN_API ASpaceship : public APawn
 		class USkeletalMeshComponent* SkeletalMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FollowCamera;
+		class UCameraComponent* FollowCamera;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Missile, meta = (AllowPrivateAccess = "true"))
 		class USceneComponent* SpawnLocation;
@@ -29,27 +29,29 @@ class ASTEROIDRAIN_API ASpaceship : public APawn
 public:
 	// Sets default values for this character's properties
 	ASpaceship();
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
+	
+	//Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-
 	void MoveForward(float Value);
+
 	void MoveRight(float value);
+
 	void Shoot();
 
+	UFUNCTION()
+		void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
 private:
+
+	float Time;
+
+	bool Cooldown;
 
 	TSubclassOf<class AMissile> MissileClass;
 
 	FActorSpawnParameters ActorSpawnParams;
 
-	float Time;
-	bool Cooldown;
+	class AMyPlayerController* MyPlayerController;
 	
 };
